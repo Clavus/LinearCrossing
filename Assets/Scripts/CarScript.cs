@@ -28,6 +28,18 @@ public class CarScript : MonoBehaviour
 
 	}
 
+    void OnTriggerEnter(Collider other)
+    {
+        PlayerScript player = other.gameObject.GetComponent<PlayerScript>();
+        if (player != null)
+        {
+            if (player.TooBigToFail())
+                Explode();
+            else
+                player.Die();
+        }
+    }
+
     public void Explode()
     {
         Instantiate(explosionPrefab, transform.position, Quaternion.identity);

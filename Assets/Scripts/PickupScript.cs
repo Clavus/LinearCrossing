@@ -7,12 +7,15 @@ public class PickupScript : MonoBehaviour
     public ToolType toolType;
 
     private Vector3 basePosition;
+    private Quaternion targetRotation;
+    private Transform cameraTransform;
 
 	// Use this for initialization
 	void Start ()
 	{
 
 	    basePosition = transform.position;
+	    cameraTransform = Camera.main.transform;
 
 	}
 	
@@ -21,6 +24,10 @@ public class PickupScript : MonoBehaviour
 	{
 
 	    transform.position = basePosition + Vector3.up*0.1f*(1+Mathf.Sin(Time.time*3)/2);
+
+        Quaternion look = Quaternion.LookRotation((cameraTransform.position - transform.position).normalized, Vector3.up);
+	    targetRotation = Quaternion.Euler(0, look.eulerAngles.y, 0);
+	    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 0.5f);
 
 	}
 
