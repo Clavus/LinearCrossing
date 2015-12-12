@@ -4,6 +4,8 @@ using System.Collections;
 public class PickupScript : MonoBehaviour
 {
 
+    public ToolType toolType;
+
     private Vector3 basePosition;
 
 	// Use this for initialization
@@ -34,3 +36,4 @@ public class PickupScript : MonoBehaviour
         Destroy(gameObject);
     }
 }
+
