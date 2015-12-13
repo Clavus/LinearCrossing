@@ -7,6 +7,7 @@ public class ToolbeltScript : MonoBehaviour
 {
 
     public float degreeInterval = 18;
+    public int maxTools = 360/18; // 20
     public float relativeScaleForSubsequentTools = 0.5f;
     public Transform yawRotationTarget;
 
@@ -46,22 +47,23 @@ public class ToolbeltScript : MonoBehaviour
         //baseLocalPosition = Vector3.Lerp(baseLocalPosition, camLocalPos, Time.deltaTime * 2f);
 	    transform.localPosition = baseLocalPosition + Vector3.up * 0.03f * (1 + Mathf.Sin(Time.time * 2) / 2);
 
-	    if (yawRotationTarget != null)
-	        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, yawRotationTarget.eulerAngles.y, 0), Time.deltaTime * 2f);
-
-
+	    //if (yawRotationTarget != null)
+	    //    transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, yawRotationTarget.eulerAngles.y, 0), Time.deltaTime * 2f);
 	}
 
-    public void AddTool(ToolType toolType)
+    public bool AddTool(ToolType toolType)
     {
         Transform toolObjectPrefab = null;
+
+        if (tools.Count >= maxTools)
+            return false;
 
         foreach (ToolTypePrefab toolPref in toolObjectPrefabs)
             if (toolPref.toolType == toolType)
                 toolObjectPrefab = toolPref.prefab.transform;
 
         if (toolObjectPrefab == null)
-            return;
+            return false;
 
         GameObject nt = (GameObject) Instantiate(toolObjectPrefab.gameObject, transform.position, Quaternion.identity);
         nt.transform.parent = transform;
@@ -78,6 +80,8 @@ public class ToolbeltScript : MonoBehaviour
             iTween.ScaleTo(nt, Vector3.one * relativeScaleForSubsequentTools, 0.5f);
 
         tools.Add(nt.GetComponent<ToolScript>());
+
+        return true;
     }
 
     public ToolType UseTool()

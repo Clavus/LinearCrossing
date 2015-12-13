@@ -1,8 +1,12 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class CrosshairScript : MonoBehaviour
 {
+
+    [SerializeField]
+    private Text messageTextObject;
 
     private SpriteRenderer sprite;
 
@@ -13,14 +17,14 @@ public class CrosshairScript : MonoBehaviour
     void Awake()
     {
         sprite = GetComponent<SpriteRenderer>();
-        baseDirection = transform.localPosition.normalized;
-        baseDistance = transform.localPosition.magnitude;
-        baseScale = transform.localScale;
     }
     
 	void Start ()
 	{
-
+        baseDirection = transform.localPosition.normalized;
+        baseDistance = transform.localPosition.magnitude;
+        baseScale = transform.localScale;
+	    RemoveMessage();
 	}
 	
 	void Update ()
@@ -30,10 +34,7 @@ public class CrosshairScript : MonoBehaviour
 
     public void SetHitDistance(float distance)
     {
-        if (distance == Mathf.Infinity)
-            distance = baseDistance;
-
-        transform.localPosition = baseDirection*Mathf.Min(baseDistance, transform.InverseTransformVector(new Vector3(0,0,distance)).magnitude);
+        transform.localPosition = baseDirection * Mathf.Min(baseDistance, distance / PlayerScript.instance.ScaleFactor);
     }
 
     public void Highlight(bool b)
@@ -50,4 +51,17 @@ public class CrosshairScript : MonoBehaviour
         }
     }
 
+    public void ShowMessage(string str) { ShowMessage(str, Color.white); }
+    public void ShowMessage(string str, Color col)
+    {
+        messageTextObject.text = str;
+        messageTextObject.color = col;
+        CancelInvoke("RemoveMessage");
+        Invoke("RemoveMessage", 3f);
+    }
+
+    void RemoveMessage()
+    {
+        messageTextObject.text = "";
+    }
 }

@@ -6,7 +6,9 @@ public class PickupScript : MonoBehaviour
 
     public ToolType toolType;
 
+    private bool visible = true;
     private Vector3 basePosition;
+    private Vector3 baseScale;
     private Quaternion targetRotation;
     private Transform cameraTransform;
 
@@ -15,9 +17,12 @@ public class PickupScript : MonoBehaviour
 	{
 
 	    basePosition = transform.position;
+	    baseScale = transform.localScale;
 	    cameraTransform = Camera.main.transform;
 
-	}
+        transform.localScale = Vector3.zero;
+        visible = false;
+    }
 	
 	// Update is called once per frame
 	void Update ()
@@ -29,7 +34,24 @@ public class PickupScript : MonoBehaviour
 	    targetRotation = Quaternion.Euler(0, look.eulerAngles.y, 0);
 	    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 0.5f);
 
+	    if (visible && Vector3.Distance(cameraTransform.position, transform.position) >= PlayerScript.instance.GrabRange)
+	        Shrink();
+        else if (!visible && Vector3.Distance(cameraTransform.position, transform.position) <= PlayerScript.instance.GrabRange)
+            Grow();
+
 	}
+
+    void Shrink()
+    {
+        visible = false;
+        iTween.ScaleTo(gameObject, Vector3.zero, 0.5f);
+    }
+
+    void Grow()
+    {
+        visible = true;
+        iTween.ScaleTo(gameObject, iTween.Hash(new object[] { "scale", baseScale, "time", 4f, "easetype", iTween.EaseType.easeOutElastic } ));
+    }
 
     public void Pickup(PlayerScript player)
     {

@@ -6,6 +6,7 @@ public class CarSpawnerScript : MonoBehaviour
 {
 
     public float spawnPeriod = 3;
+    public float randomAddedPeriod = 2;
 
     [SerializeField]
     private GameObject carPrefab;
@@ -15,7 +16,7 @@ public class CarSpawnerScript : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
-	    nextSpawnTime = Time.time + spawnPeriod;
+	    nextSpawnTime = Time.time + spawnPeriod + Random.value * randomAddedPeriod;
 	}
 	
 	// Update is called once per frame
@@ -24,7 +25,7 @@ public class CarSpawnerScript : MonoBehaviour
 	    if (nextSpawnTime <= Time.time)
 	    {
 	        Instantiate(carPrefab, transform.position, transform.rotation);
-            nextSpawnTime = Time.time + spawnPeriod;
+            nextSpawnTime = Time.time + spawnPeriod + Random.value * randomAddedPeriod;
         }
 
 

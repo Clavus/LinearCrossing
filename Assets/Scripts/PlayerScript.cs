@@ -28,6 +28,11 @@ public class PlayerScript : MonoBehaviour
     public int gridX = 0;
     public int gridY = 0;
 
+    public static PlayerScript instance;
+
+    public float ScaleFactor { get { return scaleFactor; } }
+    public float GrabRange { get { return Grid.Size*9*scaleFactor; } }
+
     private bool died = false;
     private float scaleFactor = 1f;
     private float scaleFactorMax = 4;
@@ -39,6 +44,14 @@ public class PlayerScript : MonoBehaviour
 
     private int gameEntLayerMask;
     private int tileBlockLayerMask;
+
+    void Awake()
+    {
+        if (instance == null)
+            instance = this;
+        else
+            Destroy(gameObject);
+    }
 
 	// Use this for initialization
 	void Start ()
@@ -60,7 +73,7 @@ public class PlayerScript : MonoBehaviour
 	        return;
 
         RaycastHit hit;
-	    if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, 24, gameEntLayerMask))
+	    if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, GrabRange, gameEntLayerMask))
 	    {
 	        PickupScript pickup = hit.collider.GetComponent<PickupScript>();
 	        if (pickup != null)
@@ -71,8 +84,11 @@ public class PlayerScript : MonoBehaviour
 	            if (Input.GetButtonDown("Grab"))
 	            {
 	                //Debug.Log("Picking up a " + pickup.toolType);
-	                pickup.Pickup(this);
-	                toolbelt.AddTool(pickup.toolType);
+
+	                if (toolbelt.AddTool(pickup.toolType))
+	                    pickup.Pickup(this);
+	                else
+	                    crosshair.ShowMessage("No more for tools!", Color.red);
 	            }
 
 	        }
@@ -175,6 +191,9 @@ public class PlayerScript : MonoBehaviour
                     forbiddenSign.Blink();
                 break;
             case ToolType.ScaleUp:
+                if (scaleFactor > scaleFactorMax)
+                    break;
+
                 scaleFactor *= 2;
                 iTween.ScaleTo(gameObject, Vector3.one * scaleFactor, 0.1f);
                 if (scaleFactor > scaleFactorMax)
@@ -185,6 +204,9 @@ public class PlayerScript : MonoBehaviour
                     
                 break;
             case ToolType.ScaleDown:
+                if (scaleFactor < scaleFactorMin)
+                    break;
+
                 scaleFactor *= 0.5f;
                 iTween.ScaleTo(gameObject, Vector3.one * scaleFactor, 0.1f);
                 if (scaleFactor < scaleFactorMin)
@@ -286,6 +308,8 @@ public class PlayerScript : MonoBehaviour
             if (toDistribute == 0)
                 break;
         }
+
+        HighscoreScript.AddCoins(amount);
     }
 
 

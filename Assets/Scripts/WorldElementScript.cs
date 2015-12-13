@@ -5,10 +5,16 @@ using System.Collections.Generic;
 public class WorldElementScript : MonoBehaviour
 {
 
-    public int width;
+    public int Width { get { return width; } }
+    public int Difficulty { get { return difficulty; } }
+
+    [SerializeField]
+    private int width;
+    [SerializeField]
+    private int difficulty = 0;
 
     [HideInInspector]
-    public bool objectsActive = true;
+    public bool objectsActive;
     [HideInInspector]
     public int gridX;
     [HideInInspector]
@@ -24,6 +30,9 @@ public class WorldElementScript : MonoBehaviour
             objects.Add(com.gameObject);
         foreach (var com in GetComponentsInChildren<CarSpawnerScript>())
             objects.Add(com.gameObject);
+
+        objectsActive = true;
+        DeactivateObjects();
     }
 
     public void DeactivateObjects()
@@ -33,17 +42,19 @@ public class WorldElementScript : MonoBehaviour
 
         objectsActive = false;
         foreach(GameObject obj in objects)
-            obj.SetActive(false);
+            if (obj != null)
+                obj.SetActive(false);
     }
 
-    public void ReactivateObjects()
+    public void ActivateObjects()
     {
         if (objectsActive)
             return;
 
         objectsActive = true;
         foreach (GameObject obj in objects)
-            obj.SetActive(true);
+            if (obj != null)
+                obj.SetActive(true);
     }
 
 }

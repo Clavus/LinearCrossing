@@ -67,7 +67,11 @@ public class SpawnerScript : MonoBehaviour
 
         GameObject prefab = spawnableObjects[Random.Range(0, spawnableObjects.Length)];
         if (prefab != null)
+        {
             spawned = (GameObject)Instantiate(prefab, transform.position, prefab.transform.rotation);
+            spawned.transform.parent = transform;
+        }
+            
     }
 
 }

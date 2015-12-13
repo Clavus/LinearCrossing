@@ -5,8 +5,13 @@ using System.Collections.Generic;
 public class WorldBuilderScript : MonoBehaviour
 {
 
-    public int cleanupDistance = 24;
-    public int deactivateDistance = 12;
+    public int tilesPerDifficultyIncrease = 6;
+    [Header("Number of Y grid squares ahead")]
+    public int creationDistance = 30;
+    public int activateDistance = 8;
+    [Header("Number of Y grid squares behind")]
+    public int cleanupDistance = 12;
+    public int deactivateDistance = 8;
 
     [SerializeField]
     private PlayerScript player;
@@ -16,7 +21,7 @@ public class WorldBuilderScript : MonoBehaviour
 
     private List<WorldElementScript> activeElements;
     private int gridDistance = 0;
-    
+
 	void Start ()
 	{
 	    activeElements = new List<WorldElementScript>(GetComponentsInChildren<WorldElementScript>());
@@ -27,15 +32,17 @@ public class WorldBuilderScript : MonoBehaviour
 	    {
 	        element.gridX = 0;
 	        element.gridY = gridDistance;
-            gridDistance += element.width;
+            gridDistance += element.Width;
+            element.ActivateObjects();
         }
-	    
+
+        InvokeRepeating("WorldActivator", 3, 3);
         InvokeRepeating("WorldCleanup", 10, 10);
 	}
 	
 	void Update ()
 	{
-	    if (player.gridY > gridDistance - 5)
+	    if (player.gridY > gridDistance - creationDistance)
 	        SpawnElement();
 	}
 
@@ -59,16 +66,47 @@ public class WorldBuilderScript : MonoBehaviour
         
     }
 
+    private void WorldActivator()
+    {
+        foreach (WorldElementScript element in activeElements)
+        {
+            if (!element.objectsActive && element.gridY > player.gridY &&
+                element.gridY < player.gridY + activateDistance)
+            {
+                //Debug.Log("activating " + element.gameObject.name + ", gridY: " + element.gridY + ", player gridY: " + player.gridY);
+                element.ActivateObjects();
+            }
+        }
+    }
+
     void SpawnElement()
     {
         if (worldElements.Length == 0)
             return;
 
-        WorldElementScript element = worldElements[Random.Range(0, worldElements.Length)];
-        GameObject newElement = (GameObject) Instantiate(element.gameObject, transform.position + Vector3.forward*gridDistance*Grid.Size, Quaternion.identity);
-        element.gridX = 0;
-        element.gridY = gridDistance;
-        gridDistance += element.width;
-        activeElements.Add(newElement.GetComponent<WorldElementScript>());
+        int spawnDifficulty = gridDistance/tilesPerDifficultyIncrease;
+        List<WorldElementScript> potentialElements = new List<WorldElementScript>();
+        foreach(WorldElementScript el in worldElements)
+            if (el.Difficulty <= spawnDifficulty)
+                potentialElements.Add(el);
+
+        if (potentialElements.Count == 0)
+            return;
+
+        WorldElementScript chosenElement = potentialElements[Random.Range(0, potentialElements.Count)];
+
+        GameObject newElement = (GameObject) Instantiate(chosenElement.gameObject, transform.position + Vector3.forward*gridDistance*Grid.Size, chosenElement.transform.rotation);
+        WorldElementScript nElement = newElement.GetComponent<WorldElementScript>();
+        nElement.gridX = 0;
+        nElement.gridY = gridDistance;
+        nElement.transform.parent = transform;
+
+        gridDistance += chosenElement.Width;
+        activeElements.Add(nElement);
+    }
+
+    public int CurrentDifficulty()
+    {
+        return player.gridY / tilesPerDifficultyIncrease;
     }
 }
