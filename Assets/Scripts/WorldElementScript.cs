@@ -22,17 +22,21 @@ public class WorldElementScript : MonoBehaviour
 
     private List<GameObject> objects;
 
-    void Start()
+    void Awake()
     {
         objects = new List<GameObject>();
-        
-        foreach(var com in GetComponentsInChildren<SpawnerScript>())
+        foreach (var com in GetComponentsInChildren<SpawnerScript>())
             objects.Add(com.gameObject);
         foreach (var com in GetComponentsInChildren<CarSpawnerScript>())
             objects.Add(com.gameObject);
 
         objectsActive = true;
         DeactivateObjects();
+    }
+
+    void Start()
+    {
+       
     }
 
     public void DeactivateObjects()

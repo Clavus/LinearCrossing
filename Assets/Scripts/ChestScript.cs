@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[SelectionBase]
 public class ChestScript : MonoBehaviour
 {
 
+    [Range(0,1)]
+    public float chanceToSpawn = 1;
     public int coins = 10;
 
     [SerializeField]
@@ -17,13 +20,10 @@ public class ChestScript : MonoBehaviour
     }
 
 	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
+	void Start ()
+	{
+	    if (Random.value > chanceToSpawn)
+	        Destroy(gameObject);
 	}
 
     void OnTriggerEnter(Collider other)

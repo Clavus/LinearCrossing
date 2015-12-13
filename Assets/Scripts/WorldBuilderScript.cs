@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class WorldBuilderScript : MonoBehaviour
+public class WorldBuilderScript : SingletonComponent<WorldBuilderScript>
 {
 
     public int tilesPerDifficultyIncrease = 6;
@@ -24,7 +24,10 @@ public class WorldBuilderScript : MonoBehaviour
 
 	void Start ()
 	{
-	    activeElements = new List<WorldElementScript>(GetComponentsInChildren<WorldElementScript>());
+        if (instance != this)
+            Destroy(gameObject);
+
+        activeElements = new List<WorldElementScript>(GetComponentsInChildren<WorldElementScript>());
         activeElements.Sort((w1, w2) => w1.transform.position.z > w2.transform.position.z ? 1
                     : (w1.transform.position.z < w2.transform.position.z ? -1 : 0));
 

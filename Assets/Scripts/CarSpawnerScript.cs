@@ -5,8 +5,10 @@ using UnityEditor;
 public class CarSpawnerScript : MonoBehaviour
 {
 
-    public float spawnPeriod = 3;
+    public float spawnPeriod = 4;
     public float randomAddedPeriod = 2;
+    public int difficultScalingUpTo = 10;
+    public float difficultDecreaseTimeUpTo = 3.5f;
 
     [SerializeField]
     private GameObject carPrefab;
@@ -25,10 +27,12 @@ public class CarSpawnerScript : MonoBehaviour
 	    if (nextSpawnTime <= Time.time)
 	    {
 	        Instantiate(carPrefab, transform.position, transform.rotation);
-            nextSpawnTime = Time.time + spawnPeriod + Random.value * randomAddedPeriod;
+
+	        int difficulty = Mathf.Min(difficultScalingUpTo, WorldBuilderScript.instance.CurrentDifficulty());
+	        float decrease = difficultDecreaseTimeUpTo * difficulty / difficultScalingUpTo;
+
+            nextSpawnTime = Time.time + spawnPeriod + (Random.value * randomAddedPeriod) - decrease;
         }
-
-
 
 	}
 }

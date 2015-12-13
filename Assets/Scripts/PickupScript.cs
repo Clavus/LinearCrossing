@@ -27,12 +27,15 @@ public class PickupScript : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
+	    if (visible)
+	    {
+	        transform.position = basePosition + Vector3.up*0.1f*(1 + Mathf.Sin(Time.time*3)/2);
 
-	    transform.position = basePosition + Vector3.up*0.1f*(1+Mathf.Sin(Time.time*3)/2);
-
-        Quaternion look = Quaternion.LookRotation((cameraTransform.position - transform.position).normalized, Vector3.up);
-	    targetRotation = Quaternion.Euler(0, look.eulerAngles.y, 0);
-	    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 0.5f);
+	        Quaternion look = Quaternion.LookRotation((cameraTransform.position - transform.position).normalized,
+	            Vector3.up);
+	        targetRotation = Quaternion.Euler(0, look.eulerAngles.y, 0);
+	        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime*0.5f);
+	    }
 
 	    if (visible && Vector3.Distance(cameraTransform.position, transform.position) >= PlayerScript.instance.GrabRange)
 	        Shrink();

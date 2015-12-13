@@ -1,43 +1,39 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class HighscoreScript : MonoBehaviour
+public class HighscoreScript : SingletonComponent<HighscoreScript>
 {
-
-    public static HighscoreScript instance;
-
     public static int CoinsCollected
     {
         get { return instance == null ? 0 : instance.coins; }
     }
 
-    public static int PreviousCoinsCollected
-    {
-        get { return instance == null ? 0 : instance.previousCoinsScore; }
-    }
-    
     private int coins;
-    private int previousCoinsScore;
+    private CauseOfDeath previousDeathCause = CauseOfDeath.None;
 
-    void Awake()
+    void Start()
     {
-        if (instance == null)
-        {
-            instance = this;
-            previousCoinsScore = 0;
-            coins = 0;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
+        if (instance != this)
             Destroy(gameObject);
 
-        
+        DontDestroyOnLoad(gameObject);
     }
 
     void OnLevelWasLoaded()
     {
-        previousCoinsScore = coins;
+        if (coins > 0 || previousDeathCause != CauseOfDeath.None)
+            ScoreboardScript.SetScoreBoard(coins, previousDeathCause);
+
+        previousDeathCause = CauseOfDeath.None;
         coins = 0;
+    }
+
+    public static void SetCauseOfDeath(CauseOfDeath cause)
+    {
+        if (instance == null)
+            return;
+
+        instance.previousDeathCause = cause;
     }
 
     public static void AddCoins(int amount)

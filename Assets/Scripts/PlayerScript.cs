@@ -25,22 +25,30 @@ public class PlayerScript : MonoBehaviour
     [SerializeField]
     private CoinPileScript[] coinPiles;
 
+    [SerializeField]
+    private Transform rayCastPivot;
+
+    [SerializeField]
+    private Transform[] moveRayTransforms;
+
     public int gridX = 0;
     public int gridY = 0;
 
     public static PlayerScript instance;
 
     public float ScaleFactor { get { return scaleFactor; } }
-    public float GrabRange { get { return Grid.Size*9*scaleFactor; } }
+    public float GrabRange { get { return grabRange; } }
 
     private bool died = false;
+    private float grabRange;
     private float scaleFactor = 1f;
-    private float scaleFactorMax = 4;
+    private float scaleFactorMax = 2;
     private float scaleFactorMin = 0.25f;
     private int lookDirection = 0;
     private Quaternion cageTargetRotation;
     private Vector3 targetPosition;
     private Transform cameraTransform;
+    private Rigidbody body;
 
     private int gameEntLayerMask;
     private int tileBlockLayerMask;
@@ -51,6 +59,8 @@ public class PlayerScript : MonoBehaviour
             instance = this;
         else
             Destroy(gameObject);
+
+        body = GetComponent<Rigidbody>();
     }
 
 	// Use this for initialization
@@ -63,6 +73,8 @@ public class PlayerScript : MonoBehaviour
 
 	    gameEntLayerMask = LayerMask.GetMask(new string[] {"GameEntity", "Geometry"});
         tileBlockLayerMask = LayerMask.GetMask(new string[] { "TileBlock" });
+
+        UpdateGrabRange();
     }
 	
 	// Update is called once per frame
@@ -88,7 +100,7 @@ public class PlayerScript : MonoBehaviour
 	                if (toolbelt.AddTool(pickup.toolType))
 	                    pickup.Pickup(this);
 	                else
-	                    crosshair.ShowMessage("No more for tools!", Color.red);
+	                    crosshair.ShowMessage("Max reached!", Color.red);
 	            }
 
 	        }
@@ -117,8 +129,7 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetButtonDown("Reset"))
         {
-            Fade.FadeToAlpha(1, 0.3f);
-            Invoke("ResetLevel", 0.3f);
+            Die(CauseOfDeath.LevelReset);
         }
 
         if (Input.GetButtonDown("Use"))
@@ -144,29 +155,6 @@ public class PlayerScript : MonoBehaviour
             toolbelt.AddTool(ToolType.ScaleDown);
         if (Input.GetKeyDown(KeyCode.Keypad5))
             toolbelt.AddTool(ToolType.ScaleUp);
-
-        /*if (Input.GetButtonDown("Back"))
-        {
-            transform.position += new Vector3(0,0,-Grid.Size);
-        }
-
-        if (Input.GetButtonDown("Right"))
-        {
-            targetPosition += Grid.StepDelta(1,0);
-            iTween.MoveTo(gameObject, targetPosition, 0.1f);
-        }
-
-        if (Input.GetButtonDown("Left"))
-        {
-            targetPosition += Grid.StepDelta(-1, 0);
-            iTween.MoveTo(gameObject, targetPosition, 0.1f);
-        }
-
-        if (Input.GetButtonDown("Front"))
-        {
-            targetPosition += Grid.StepDelta(0, 1);
-            iTween.MoveTo(gameObject, targetPosition, 0.1f);
-        }*/
     }
 
     void OnUseTool(ToolType toolType)
@@ -179,10 +167,12 @@ public class PlayerScript : MonoBehaviour
                     lookDirection = 3;
 
                 cageTargetRotation = cageTargetRotation*Quaternion.AngleAxis(-90, Vector3.up);
+                rayCastPivot.rotation = cageTargetRotation;
                 break;
             case ToolType.RightRotation:
                 lookDirection = (lookDirection + 1) % 4;
                 cageTargetRotation = cageTargetRotation * Quaternion.AngleAxis(90, Vector3.up);
+                rayCastPivot.rotation = cageTargetRotation;
                 break;
             case ToolType.ForwardTranslation:
                 if (CanMoveForward())
@@ -196,6 +186,7 @@ public class PlayerScript : MonoBehaviour
 
                 scaleFactor *= 2;
                 iTween.ScaleTo(gameObject, Vector3.one * scaleFactor, 0.1f);
+                UpdateGrabRange();
                 if (scaleFactor > scaleFactorMax)
                 {
                     CancelInvoke("PushBackSize");
@@ -209,6 +200,7 @@ public class PlayerScript : MonoBehaviour
 
                 scaleFactor *= 0.5f;
                 iTween.ScaleTo(gameObject, Vector3.one * scaleFactor, 0.1f);
+                UpdateGrabRange();
                 if (scaleFactor < scaleFactorMin)
                 {
                     CancelInvoke("PushBackSize");
@@ -233,17 +225,18 @@ public class PlayerScript : MonoBehaviour
 
     bool CanMoveForward()
     {
-        Vector3 delta = GetMoveDelta();
-        //Debug.DrawRay(transform.position, delta, Color.red, 5f);
-        //Debug.DrawRay(transform.position + Vector3.up * 2f * transform.localScale.y, delta, Color.red, 5f);
-        return !Physics.Raycast(transform.position, delta.normalized, delta.magnitude, tileBlockLayerMask)
-            && !Physics.Raycast(transform.position + Vector3.up * 2f * transform.localScale.y, delta.normalized, delta.magnitude, tileBlockLayerMask);
+        bool result = true;
+        foreach (Transform rayOrigin in moveRayTransforms)
+        {
+            Debug.DrawRay(rayOrigin.position, rayOrigin.forward * Grid.Size, Color.red, 3);
+            if (Physics.Raycast(rayOrigin.position, rayOrigin.forward, Grid.Size, tileBlockLayerMask))
+            {
+                result = false;
+                break;
+            }
+        }
 
-        //Vector3 delta = GetMoveDelta();
-        //BoxCollider box = GetComponent<BoxCollider>();
-        //Vector3 center = Vector3.Scale(box.center, transform.localScale);
-        //Vector3 halfSize = Vector3.Scale(box.size/2f, transform.localScale);
-        //return !Physics.BoxCast(center, halfSize, delta.normalized, transform.rotation, Grid.Size, tileBlockLayerMask);
+        return result;
     }
 
     void MoveForward()
@@ -283,16 +276,40 @@ public class PlayerScript : MonoBehaviour
         return scaleFactor > 1;
     }
 
-    public void Die()
+    public void Die(CauseOfDeath cause)
     {
         if (died)
             return;
 
         died = true;
-        Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-        cage.gameObject.SetActive(false);
-        Fade.FadeToAlpha(1, 2f);
-        Invoke("ResetLevel", 2f);
+
+        switch (cause)
+        {
+            case CauseOfDeath.CarCrash:
+                Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+                cage.gameObject.SetActive(false);
+                Fade.FadeToAlpha(1, 2f);
+                Invoke("ResetLevel", 2f);
+                break;
+            case CauseOfDeath.FellDownHole:
+                GetComponent<Collider>().enabled = false;
+                body.useGravity = true;
+                body.isKinematic = false;
+                body.velocity = Vector3.zero;
+                Fade.FadeToAlpha(1, 0.5f);
+                Invoke("ResetLevel", 2f);
+                break;
+            case CauseOfDeath.LevelReset:
+                Fade.FadeToAlpha(1, 0.3f);
+                Invoke("ResetLevel", 0.3f);
+                break;
+            default:
+                Fade.FadeToAlpha(1, 0.3f);
+                Invoke("ResetLevel", 0.3f);
+                break;
+        }
+        
+        HighscoreScript.SetCauseOfDeath(cause);
     }
 
     public void CollectCoins(int amount)
@@ -312,10 +329,20 @@ public class PlayerScript : MonoBehaviour
         HighscoreScript.AddCoins(amount);
     }
 
+    void UpdateGrabRange()
+    {
+        grabRange = Grid.Size * 9 * Mathf.Sqrt(scaleFactor);
+    }
 
     void ResetLevel()
     {
-        SceneManager.LoadScene(0, LoadSceneMode.Single);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
     }
 
 }
+
+public enum CauseOfDeath
+{
+    CarCrash, FellDownHole, LevelReset, None
+}
+

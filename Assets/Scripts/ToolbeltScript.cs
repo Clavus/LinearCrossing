@@ -92,7 +92,7 @@ public class ToolbeltScript : MonoBehaviour
         ToolScript tool = tools[0];
         ToolType result = tool.GetComponent<ToolScript>().toolType;
         tools.RemoveAt(0);
-        Destroy(tool.gameObject);
+        tool.OnDiscard(true);
 
         UpdateToolset();
 
@@ -106,7 +106,7 @@ public class ToolbeltScript : MonoBehaviour
 
         ToolScript tool = tools[0];
         tools.RemoveAt(0);
-        Destroy(tool.gameObject);
+        tool.OnDiscard(false);
 
         UpdateToolset();
     }
