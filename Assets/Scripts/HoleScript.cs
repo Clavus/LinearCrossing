@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[SelectionBase]
 public class HoleScript : MonoBehaviour {
 
-    void OnTriggerEnter(Collider other)
+    void OnTriggerStay(Collider other)
     {
         PlayerScript player = other.gameObject.GetComponent<PlayerScript>();
-        if (player != null)
+        if (player != null && !player.IsDead)
         {
             if (!player.TooBigToFail())
                 player.Die(CauseOfDeath.FellDownHole);

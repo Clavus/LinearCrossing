@@ -19,7 +19,7 @@ public class ScoreboardScript : SingletonComponent<ScoreboardScript>
 
     public static void SetScoreBoard(int coins, CauseOfDeath cause)
     {
-        Debug.Log("Setting scoreboard to " + coins + ", " + cause);
+        //Debug.Log("Setting scoreboard to " + coins + ", " + cause);
         instance.gameObject.SetActive(true);
 
         string str = "";

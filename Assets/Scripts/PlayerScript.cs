@@ -38,6 +38,7 @@ public class PlayerScript : MonoBehaviour
 
     public float ScaleFactor { get { return scaleFactor; } }
     public float GrabRange { get { return grabRange; } }
+    public bool IsDead { get { return died; } }
 
     private bool died = false;
     private float grabRange;
