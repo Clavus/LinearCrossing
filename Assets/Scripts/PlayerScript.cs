@@ -411,8 +411,7 @@ public class PlayerScript : MonoBehaviour
                 body.isKinematic = false;
                 body.velocity = Vector3.zero;
                 Fade.FadeToAlpha(1, 0.5f);
-                if (fallingAudio != null)
-                    fallingAudio.Play();
+                Invoke("PlayFallAudio", 0.1f);
                 Invoke("ResetLevel", 2f);
                 break;
             case CauseOfDeath.LevelReset:
@@ -426,6 +425,12 @@ public class PlayerScript : MonoBehaviour
         }
         
         HighscoreScript.SetCauseOfDeath(cause);
+    }
+
+    void PlayFallAudio()
+    {
+        if (fallingAudio != null)
+            fallingAudio.Play();
     }
 
     public void CollectCoins(int amount)
