@@ -20,8 +20,11 @@ public class CarScript : MonoBehaviour
     [SerializeField]
     private GameObject explosionPrefab;
 
-	// Use this for initialization
-	void Start ()
+    [SerializeField]
+    private AudioSource explosionAudio;
+
+    // Use this for initialization
+    void Start ()
 	{
 	    if (randomizeColorTarget != null)
 	        randomizeColorTarget.material.color = new Color(Random.value, Random.value, Random.value);
@@ -63,6 +66,7 @@ public class CarScript : MonoBehaviour
 
     public void Explode()
     {
+        Instantiate(explosionAudio.gameObject, transform.position, Quaternion.identity);
         Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         Destroy(gameObject);
     }

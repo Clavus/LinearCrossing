@@ -13,6 +13,7 @@ public class PlayerScript : MonoBehaviour
     [SerializeField]
     private CrosshairScript crosshair;
 
+    [Header("Cage configuration")]
     [SerializeField]
     private Transform cage;
 
@@ -31,6 +32,7 @@ public class PlayerScript : MonoBehaviour
     [SerializeField]
     private CoinPileScript[] coinPiles;
 
+    [Header("Movement raycasts")]
     [SerializeField]
     private Transform rayCastPivot;
 
@@ -39,6 +41,28 @@ public class PlayerScript : MonoBehaviour
 
     [SerializeField]
     private Transform resizeRayTransform;
+
+    [Header("Audio")]
+    [SerializeField]
+    private AudioSource carCrashAudio;
+
+    [SerializeField]
+    private AudioSource coinCollectAudio;
+
+    [SerializeField]
+    private AudioSource grabAudio;
+
+    [SerializeField]
+    private AudioSource useAudio;
+
+    [SerializeField]
+    private AudioSource deniedAudio;
+
+    [SerializeField]
+    private AudioSource discardAudio;
+
+    [SerializeField]
+    private AudioSource fallingAudio;
 
     public static PlayerScript instance;
 
@@ -149,8 +173,10 @@ public class PlayerScript : MonoBehaviour
 
 	    if (Input.GetButtonDown("Discard"))
 	    {
-            toolbelt.DiscardTool();
-	    }
+            if (toolbelt.DiscardTool())
+                if (discardAudio != null)
+                    discardAudio.Play();
+        }
 
 	    cage.rotation = Quaternion.Slerp(cage.rotation, cageTargetRotation, Time.deltaTime*3f);
 
@@ -170,9 +196,17 @@ public class PlayerScript : MonoBehaviour
     public bool TryAddTool(ToolType toolType)
     {
         if (toolbelt.AddTool(toolType))
+        {
+            if (grabAudio != null)
+                grabAudio.Play();
+
             return true;
+        } 
         else
         {
+            if (deniedAudio != null)
+                deniedAudio.Play();
+
             crosshair.ShowMessage("Max reached!", Color.red);
             return false;
         }
@@ -190,29 +224,53 @@ public class PlayerScript : MonoBehaviour
 
                 cageTargetRotation = cageTargetRotation*Quaternion.AngleAxis(-90, Vector3.up);
                 rayCastPivot.rotation = cageTargetRotation;
+                if (useAudio != null)
+                    useAudio.Play();
+
                 break;
             case ToolType.RightRotation:
-                lookDirection = (lookDirection + 1) % 4;
-                cageTargetRotation = cageTargetRotation * Quaternion.AngleAxis(90, Vector3.up);
+                lookDirection = (lookDirection + 1)%4;
+                cageTargetRotation = cageTargetRotation*Quaternion.AngleAxis(90, Vector3.up);
                 rayCastPivot.rotation = cageTargetRotation;
+                if (useAudio != null)
+                    useAudio.Play();
+
                 break;
             case ToolType.ForwardTranslation:
                 if (CanMoveForward())
+                {
                     MoveForward();
+                    if (useAudio != null)
+                        useAudio.Play();
+                }
                 else
                 {
                     forbiddenSign.Blink();
                     crosshair.ShowMessage("Obstructed!", Color.red);
+                    if (deniedAudio != null)
+                        deniedAudio.Play();
                 }  
                 break;
             case ToolType.ScaleUp:
                 if (CanGrow())
+                {
                     Grow();
+                    if (useAudio != null)
+                        useAudio.Play();
+                }
                 else
+                {
                     crosshair.ShowMessage("Obstructed!", Color.red);
+                    if (deniedAudio != null)
+                        deniedAudio.Play();
+                }
+                    
                 break;
             case ToolType.ScaleDown:
                 Shrink();
+                if (useAudio != null)
+                    useAudio.Play();
+
                 break;
         }
     }
@@ -341,7 +399,10 @@ public class PlayerScript : MonoBehaviour
             case CauseOfDeath.CarCrash:
                 Instantiate(explosionPrefab, transform.position, Quaternion.identity);
                 cage.gameObject.SetActive(false);
-                Fade.FadeToAlpha(1, 2f);
+                if (carCrashAudio != null)
+                    carCrashAudio.Play();
+
+                Fade.FadeToAlpha(1, 0.3f);
                 Invoke("ResetLevel", 2f);
                 break;
             case CauseOfDeath.FellDownHole:
@@ -350,6 +411,8 @@ public class PlayerScript : MonoBehaviour
                 body.isKinematic = false;
                 body.velocity = Vector3.zero;
                 Fade.FadeToAlpha(1, 0.5f);
+                if (fallingAudio != null)
+                    fallingAudio.Play();
                 Invoke("ResetLevel", 2f);
                 break;
             case CauseOfDeath.LevelReset:
@@ -379,6 +442,7 @@ public class PlayerScript : MonoBehaviour
                 break;
         }
 
+        coinCollectAudio.Play();
         HighscoreScript.AddCoins(amount);
     }
 

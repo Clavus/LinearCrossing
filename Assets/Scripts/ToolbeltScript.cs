@@ -99,16 +99,17 @@ public class ToolbeltScript : MonoBehaviour
         return result;
     }
 
-    public void DiscardTool()
+    public bool DiscardTool()
     {
         if (tools.Count == 0)
-            return;
+            return false;
 
         ToolScript tool = tools[0];
         tools.RemoveAt(0);
         tool.OnDiscard(false);
 
         UpdateToolset();
+        return true;
     }
 
     void UpdateToolset()
