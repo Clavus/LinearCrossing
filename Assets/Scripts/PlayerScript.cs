@@ -100,7 +100,6 @@ public class PlayerScript : MonoBehaviour
         RaycastHit hit;
 	    if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, GrabRange, gameEntLayerMask))
 	    {
-	        PickupScript pickup = hit.collider.GetComponent<PickupScript>();
 	        IInteractable interactable = hit.collider.GetComponent(typeof (IInteractable)) as IInteractable;
 	        if (interactable != null)
 	        {
@@ -390,7 +389,7 @@ public class PlayerScript : MonoBehaviour
 
     void ResetLevel()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+        SceneManager.LoadScene(1, LoadSceneMode.Single);
     }
 
 }
