@@ -46,7 +46,7 @@ public class PlayerScript : MonoBehaviour
     public float GrabRange { get { return grabRange; } }
     public bool IsDead { get { return died; } }
     public int GridX { get { return gridX; } }
-    public int GridY { get { return gridX; } }
+    public int GridY { get { return gridY; } }
 
     private int gridX = 0;
     private int gridY = 0;
@@ -57,7 +57,7 @@ public class PlayerScript : MonoBehaviour
     private float scaleFactorMax = 2;
     private float scaleFactorMin = 0.25f;
     private int lookDirection = 0;
-    private float nextPickupTime = 0;
+    private float nextInteractTime = 0;
     private Quaternion cageTargetRotation;
     private Vector3 targetPosition;
     private Transform cameraTransform;
@@ -101,20 +101,17 @@ public class PlayerScript : MonoBehaviour
 	    if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, GrabRange, gameEntLayerMask))
 	    {
 	        PickupScript pickup = hit.collider.GetComponent<PickupScript>();
-	        if (pickup != null)
+	        IInteractable interactable = hit.collider.GetComponent(typeof (IInteractable)) as IInteractable;
+	        if (interactable != null)
 	        {
 	            crosshair.Highlight(true);
 	            crosshair.SetHitDistance(hit.distance);
 
-	            if (Input.GetButton("Grab") && nextPickupTime < Time.time)
+	            if (Input.GetButtonDown("Grab") && nextInteractTime < Time.time)
 	            {
 	                //Debug.Log("Picking up a " + pickup.toolType);
-	                nextPickupTime = Time.time + 0.2f;
-
-	                if (toolbelt.AddTool(pickup.toolType))
-	                    pickup.Pickup(this);
-	                else
-	                    crosshair.ShowMessage("Max reached!", Color.red);
+	                nextInteractTime = Time.time + 0.1f;
+                    interactable.OnInteract(this);
 	            }
 
 	        }
@@ -171,6 +168,18 @@ public class PlayerScript : MonoBehaviour
             toolbelt.AddTool(ToolType.ScaleUp);
     }
 
+    public bool TryAddTool(ToolType toolType)
+    {
+        if (toolbelt.AddTool(toolType))
+            return true;
+        else
+        {
+            crosshair.ShowMessage("Max reached!", Color.red);
+            return false;
+        }
+
+    }
+
     void OnUseTool(ToolType toolType)
     {
         switch (toolType)
@@ -198,37 +207,13 @@ public class PlayerScript : MonoBehaviour
                 }  
                 break;
             case ToolType.ScaleUp:
-                if (scaleFactor > scaleFactorMax)
-                    break;
-
-                if (CanSizeUp())
-                {
-                    scaleFactor *= 2;
-                    iTween.ScaleTo(gameObject, Vector3.one * scaleFactor, 0.1f);
-                    UpdateGrabRange();
-                    if (scaleFactor > scaleFactorMax)
-                    {
-                        CancelInvoke("PushBackSize");
-                        InvokeRepeating("PushBackSize", 1f, 1f);
-                    }
-                }
+                if (CanGrow())
+                    Grow();
                 else
-                {
                     crosshair.ShowMessage("Obstructed!", Color.red);
-                }
                 break;
             case ToolType.ScaleDown:
-                if (scaleFactor < scaleFactorMin)
-                    break;
-
-                scaleFactor *= 0.5f;
-                iTween.ScaleTo(gameObject, Vector3.one * scaleFactor, 0.1f);
-                UpdateGrabRange();
-                if (scaleFactor < scaleFactorMin)
-                {
-                    CancelInvoke("PushBackSize");
-                    InvokeRepeating("PushBackSize", 1f, 1f);
-                }
+                Shrink();
                 break;
         }
     }
@@ -244,6 +229,36 @@ public class PlayerScript : MonoBehaviour
 
         if (scaleFactor <= scaleFactorMax && scaleFactor >= scaleFactorMin)
             CancelInvoke("PushBackSize");
+    }
+
+    public void Shrink()
+    {
+        if (scaleFactor < scaleFactorMin)
+            return;
+
+        scaleFactor *= 0.5f;
+        iTween.ScaleTo(gameObject, Vector3.one * scaleFactor, 0.1f);
+        UpdateGrabRange();
+        if (scaleFactor < scaleFactorMin)
+        {
+            CancelInvoke("PushBackSize");
+            InvokeRepeating("PushBackSize", 1f, 1f);
+        }
+    }
+
+    public void Grow()
+    {
+        if (scaleFactor > scaleFactorMax)
+            return;
+
+        scaleFactor *= 2;
+        iTween.ScaleTo(gameObject, Vector3.one * scaleFactor, 0.1f);
+        UpdateGrabRange();
+        if (scaleFactor > scaleFactorMax)
+        {
+            CancelInvoke("PushBackSize");
+            InvokeRepeating("PushBackSize", 1f, 1f);
+        }
     }
 
     bool CanMoveForward()
@@ -262,9 +277,10 @@ public class PlayerScript : MonoBehaviour
         return result;
     }
 
-    bool CanSizeUp()
+    bool CanGrow()
     {
         Vector3 ray = (resizeRayTransform.position - transform.position);
+        Debug.DrawRay(resizeRayTransform.position, ray, Color.red, 3);
         return !Physics.Raycast(resizeRayTransform.position, ray.normalized, ray.magnitude, tileBlockLayerMask);
     }
 
@@ -282,7 +298,7 @@ public class PlayerScript : MonoBehaviour
 
     void PunchPiston()
     {
-        iTween.PunchPosition(cageEnginePiston.gameObject, Vector3.up * 0.2f, 1f);
+        iTween.PunchPosition(cageEnginePiston.gameObject, Vector3.up * 0.2f * scaleFactor, 1f);
     }
 
     Vector3 GetMoveDelta()

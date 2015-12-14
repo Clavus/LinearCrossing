@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class PickupScript : MonoBehaviour
+public class PickupScript : MonoBehaviour, IInteractable
 {
 
     public ToolType toolType;
@@ -56,17 +56,20 @@ public class PickupScript : MonoBehaviour
         iTween.ScaleTo(gameObject, iTween.Hash(new object[] { "scale", baseScale, "time", 4f, "easetype", iTween.EaseType.easeOutElastic } ));
     }
 
-    public void Pickup(PlayerScript player)
-    {
-        GetComponent<Collider>().enabled = false;
-        iTween.MoveTo(gameObject, Camera.main.transform.position + Vector3.down, 1f);
-        iTween.ScaleTo(gameObject, Vector3.zero, 1f);
-        Invoke("DestroyMe", 1f);
-    }
-
     private void DestroyMe()
     {
         Destroy(gameObject);
+    }
+
+    public void OnInteract(PlayerScript player)
+    {
+        if (player.TryAddTool(toolType))
+        {
+            GetComponent<Collider>().enabled = false;
+            iTween.MoveTo(gameObject, Camera.main.transform.position + Vector3.down, 1f);
+            iTween.ScaleTo(gameObject, Vector3.zero, 1f);
+            Invoke("DestroyMe", 1f);
+        }
     }
 }
 

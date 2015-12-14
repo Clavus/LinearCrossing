@@ -1,0 +1,30 @@
+﻿using UnityEngine;
+using System.Collections;
+
+public class SignScript : MonoBehaviour
+{
+
+    public float activationDistance = 3;
+
+    private bool visible = false;
+    private Transform cameraTransform;
+    private Vector3 baseScale;
+
+	void Start ()
+	{
+        visible = false;
+	    baseScale = transform.localScale;
+	    transform.localScale = Vector3.one*0.05f;
+	    cameraTransform = Camera.main.transform;
+	}
+	
+	void Update ()
+	{
+	    if (!visible && Vector3.Distance(cameraTransform.position, transform.position) <= activationDistance)
+	    {
+            Debug.Log("Activated");
+            iTween.ScaleTo(gameObject, iTween.Hash(new object[] { "scale", baseScale, "time", 2f, "easetype", iTween.EaseType.easeOutElastic }));
+            visible = true;
+        }
+	}
+}

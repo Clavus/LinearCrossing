@@ -46,7 +46,10 @@ public class CarScript : MonoBehaviour
         if (player != null)
         {
             if (player.TooBigToFail())
+            {
+                player.Shrink();
                 Explode();
+            }
             else
                 player.Die(CauseOfDeath.CarCrash);
         }
