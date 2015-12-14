@@ -4,6 +4,7 @@ using System.Collections;
 public class SignScript : MonoBehaviour
 {
 
+    public float activationDelay = 0;
     public float activationDistance = 3;
 
     private bool visible = false;
@@ -30,9 +31,14 @@ public class SignScript : MonoBehaviour
 	{
 	    if (!visible && Vector3.Distance(cameraTransform.position, transform.position) <= activationDistance)
 	    {
-	        canvas.enabled = true;
-            iTween.ScaleTo(gameObject, iTween.Hash(new object[] { "scale", baseScale, "time", 2f, "easetype", iTween.EaseType.easeOutElastic }));
+	        Invoke("ShowSign", activationDelay);
             visible = true;
         }
 	}
+
+    void ShowSign()
+    {
+        canvas.enabled = true;
+        iTween.ScaleTo(gameObject, iTween.Hash(new object[] { "scale", baseScale, "time", 2f, "easetype", iTween.EaseType.easeOutElastic }));
+    }
 }

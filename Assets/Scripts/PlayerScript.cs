@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class PlayerScript : MonoBehaviour
 {
+
+    public bool startScreenMode = false;
+
     [SerializeField]
     private ToolbeltScript toolbelt;
 
@@ -152,8 +155,14 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetButtonDown("Start"))
 	    {
-            Debug.Log("Input tracking reset");
 	        InputTracking.Recenter();
+
+	        if (startScreenMode)
+	        {
+                FadeCanvasScript.instance.FadeToAlpha(1, 2);
+                Invoke("LoadTutorial", 2f);
+            }
+                
 	    }
 
         if (Input.GetButtonDown("Quit"))
@@ -161,12 +170,12 @@ public class PlayerScript : MonoBehaviour
             Application.Quit();
         }
 
-        if (Input.GetButtonDown("Reset"))
+        if (Input.GetButtonDown("Reset") && !startScreenMode)
         {
             Die(CauseOfDeath.LevelReset);
         }
 
-        if (Input.GetButtonDown("Use"))
+        if (Input.GetButtonDown("Use") && !startScreenMode)
         {
             OnUseTool(toolbelt.UseTool());
         }
@@ -181,18 +190,26 @@ public class PlayerScript : MonoBehaviour
 	    cage.rotation = Quaternion.Slerp(cage.rotation, cageTargetRotation, Time.deltaTime*3f);
 
         // CHEATS
-        if (Input.GetKeyDown(KeyCode.Keypad1))
+	    if (Input.GetKey(KeyCode.LeftShift) && !startScreenMode)
+	    {
+            if (Input.GetKeyDown(KeyCode.Keypad1))
             toolbelt.AddTool(ToolType.ForwardTranslation);
-        if (Input.GetKeyDown(KeyCode.Keypad2))
-            toolbelt.AddTool(ToolType.LeftRotation);
-        if (Input.GetKeyDown(KeyCode.Keypad3))
-            toolbelt.AddTool(ToolType.RightRotation);
-        if (Input.GetKeyDown(KeyCode.Keypad4))
-            toolbelt.AddTool(ToolType.ScaleDown);
-        if (Input.GetKeyDown(KeyCode.Keypad5))
-            toolbelt.AddTool(ToolType.ScaleUp);
+            if (Input.GetKeyDown(KeyCode.Keypad2))
+                toolbelt.AddTool(ToolType.LeftRotation);
+            if (Input.GetKeyDown(KeyCode.Keypad3))
+                toolbelt.AddTool(ToolType.RightRotation);
+            if (Input.GetKeyDown(KeyCode.Keypad4))
+                toolbelt.AddTool(ToolType.ScaleDown);
+            if (Input.GetKeyDown(KeyCode.Keypad5))
+                toolbelt.AddTool(ToolType.ScaleUp);
+        }
     }
 
+    public void ShowCrosshairMessage(string str, Color color)
+    {
+        crosshair.ShowMessage(str, color);
+    }
+    
     public bool TryAddTool(ToolType toolType)
     {
         if (toolbelt.AddTool(toolType))
@@ -456,9 +473,14 @@ public class PlayerScript : MonoBehaviour
         grabRange = Grid.Size * 9 * Mathf.Sqrt(scaleFactor);
     }
 
+    void LoadTutorial()
+    {
+        SceneManager.LoadScene("tutorial", LoadSceneMode.Single);
+    }
+
     void ResetLevel()
     {
-        SceneManager.LoadScene(1, LoadSceneMode.Single);
+        SceneManager.LoadScene("game", LoadSceneMode.Single);
     }
 
 }

@@ -4,7 +4,7 @@ using System.Collections;
 
 public class FadeCanvasScript : SingletonComponent<FadeCanvasScript>
 {
-
+    [HideInInspector]
     public float fadeSpeed = 1;
     
     [SerializeField]
