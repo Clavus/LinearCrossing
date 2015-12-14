@@ -21,7 +21,10 @@ namespace UnityStandardAssets.Utility
 		private float heightDamping;
 
 		// Use this for initialization
-		void Start() { }
+		void Start() 
+		{
+
+		}
 
 		// Update is called once per frame
 		void LateUpdate()

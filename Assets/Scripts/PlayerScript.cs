@@ -17,6 +17,12 @@ public class PlayerScript : MonoBehaviour
     private Transform cage;
 
     [SerializeField]
+    private ParticleSystem cageParticleSystem;
+
+    [SerializeField]
+    private Transform cageEnginePiston;
+
+    [SerializeField]
     private ForbiddenSignScript forbiddenSign;
 
     [SerializeField]
@@ -31,14 +37,19 @@ public class PlayerScript : MonoBehaviour
     [SerializeField]
     private Transform[] moveRayTransforms;
 
-    public int gridX = 0;
-    public int gridY = 0;
+    [SerializeField]
+    private Transform resizeRayTransform;
 
     public static PlayerScript instance;
 
     public float ScaleFactor { get { return scaleFactor; } }
     public float GrabRange { get { return grabRange; } }
     public bool IsDead { get { return died; } }
+    public int GridX { get { return gridX; } }
+    public int GridY { get { return gridX; } }
+
+    private int gridX = 0;
+    private int gridY = 0;
 
     private bool died = false;
     private float grabRange;
@@ -46,6 +57,7 @@ public class PlayerScript : MonoBehaviour
     private float scaleFactorMax = 2;
     private float scaleFactorMin = 0.25f;
     private int lookDirection = 0;
+    private float nextPickupTime = 0;
     private Quaternion cageTargetRotation;
     private Vector3 targetPosition;
     private Transform cameraTransform;
@@ -94,9 +106,10 @@ public class PlayerScript : MonoBehaviour
 	            crosshair.Highlight(true);
 	            crosshair.SetHitDistance(hit.distance);
 
-	            if (Input.GetButtonDown("Grab"))
+	            if (Input.GetButton("Grab") && nextPickupTime < Time.time)
 	            {
 	                //Debug.Log("Picking up a " + pickup.toolType);
+	                nextPickupTime = Time.time + 0.2f;
 
 	                if (toolbelt.AddTool(pickup.toolType))
 	                    pickup.Pickup(this);
@@ -179,21 +192,30 @@ public class PlayerScript : MonoBehaviour
                 if (CanMoveForward())
                     MoveForward();
                 else
+                {
                     forbiddenSign.Blink();
+                    crosshair.ShowMessage("Obstructed!", Color.red);
+                }  
                 break;
             case ToolType.ScaleUp:
                 if (scaleFactor > scaleFactorMax)
                     break;
 
-                scaleFactor *= 2;
-                iTween.ScaleTo(gameObject, Vector3.one * scaleFactor, 0.1f);
-                UpdateGrabRange();
-                if (scaleFactor > scaleFactorMax)
+                if (CanSizeUp())
                 {
-                    CancelInvoke("PushBackSize");
-                    InvokeRepeating("PushBackSize", 1f, 1f);
+                    scaleFactor *= 2;
+                    iTween.ScaleTo(gameObject, Vector3.one * scaleFactor, 0.1f);
+                    UpdateGrabRange();
+                    if (scaleFactor > scaleFactorMax)
+                    {
+                        CancelInvoke("PushBackSize");
+                        InvokeRepeating("PushBackSize", 1f, 1f);
+                    }
                 }
-                    
+                else
+                {
+                    crosshair.ShowMessage("Obstructed!", Color.red);
+                }
                 break;
             case ToolType.ScaleDown:
                 if (scaleFactor < scaleFactorMin)
@@ -240,12 +262,27 @@ public class PlayerScript : MonoBehaviour
         return result;
     }
 
+    bool CanSizeUp()
+    {
+        Vector3 ray = (resizeRayTransform.position - transform.position);
+        return !Physics.Raycast(resizeRayTransform.position, ray.normalized, ray.magnitude, tileBlockLayerMask);
+    }
+
     void MoveForward()
     {
         Vector3 delta = GetMoveDelta();
         targetPosition += delta;
         iTween.MoveTo(gameObject, targetPosition, 0.2f);
         IncrementGridCoord();
+
+        cageParticleSystem.Play();
+        iTween.Stop(cageEnginePiston.gameObject);
+        Invoke("PunchPiston", 0); // do a frame later
+    }
+
+    void PunchPiston()
+    {
+        iTween.PunchPosition(cageEnginePiston.gameObject, Vector3.up * 0.2f, 1f);
     }
 
     Vector3 GetMoveDelta()

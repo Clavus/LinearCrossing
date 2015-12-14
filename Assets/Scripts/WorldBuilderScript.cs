@@ -45,7 +45,7 @@ public class WorldBuilderScript : SingletonComponent<WorldBuilderScript>
 	
 	void Update ()
 	{
-	    if (player.gridY > gridDistance - creationDistance)
+	    if (player.GridY > gridDistance - creationDistance)
 	        SpawnElement();
 	}
 
@@ -58,9 +58,9 @@ public class WorldBuilderScript : SingletonComponent<WorldBuilderScript>
         for (int i = activeElements.Count - 1; i >= 0; i--)
         {
             element = activeElements[i];
-            if (element.gridY < player.gridY - deactivateDistance)
+            if (element.gridY < player.GridY - deactivateDistance)
                 element.DeactivateObjects();
-            if (element.gridY < player.gridY - cleanupDistance)
+            if (element.gridY < player.GridY - cleanupDistance)
             {
                 activeElements.RemoveAt(i);
                 Destroy(element.gameObject);
@@ -73,8 +73,8 @@ public class WorldBuilderScript : SingletonComponent<WorldBuilderScript>
     {
         foreach (WorldElementScript element in activeElements)
         {
-            if (!element.objectsActive && element.gridY > player.gridY &&
-                element.gridY < player.gridY + activateDistance)
+            if (!element.objectsActive && element.gridY > player.GridY &&
+                element.gridY < player.GridY + activateDistance)
             {
                 //Debug.Log("activating " + element.gameObject.name + ", gridY: " + element.gridY + ", player gridY: " + player.gridY);
                 element.ActivateObjects();
@@ -110,6 +110,6 @@ public class WorldBuilderScript : SingletonComponent<WorldBuilderScript>
 
     public int CurrentDifficulty()
     {
-        return player.gridY / tilesPerDifficultyIncrease;
+        return player.GridY / tilesPerDifficultyIncrease;
     }
 }

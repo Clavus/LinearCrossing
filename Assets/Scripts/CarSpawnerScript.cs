@@ -11,7 +11,7 @@ public class CarSpawnerScript : MonoBehaviour
     public float difficultDecreaseTimeUpTo = 3.5f;
 
     [SerializeField]
-    private GameObject carPrefab;
+    private GameObject[] carPrefabs;
 
     private float nextSpawnTime = 0;
 
@@ -22,11 +22,14 @@ public class CarSpawnerScript : MonoBehaviour
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()
+	{
+	    if (carPrefabs.Length == 0)
+	        return;
 
 	    if (nextSpawnTime <= Time.time)
 	    {
-	        Instantiate(carPrefab, transform.position, transform.rotation);
+	        Instantiate(carPrefabs[Random.Range(0, carPrefabs.Length)], transform.position, transform.rotation);
 
 	        int difficulty = Mathf.Min(difficultScalingUpTo, WorldBuilderScript.instance.CurrentDifficulty());
 	        float decrease = difficultDecreaseTimeUpTo * difficulty / difficultScalingUpTo;

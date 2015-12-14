@@ -58,6 +58,7 @@ public class PickupScript : MonoBehaviour
 
     public void Pickup(PlayerScript player)
     {
+        GetComponent<Collider>().enabled = false;
         iTween.MoveTo(gameObject, Camera.main.transform.position + Vector3.down, 1f);
         iTween.ScaleTo(gameObject, Vector3.zero, 1f);
         Invoke("DestroyMe", 1f);
