@@ -13,14 +13,15 @@ public class ScoreboardScript : SingletonComponent<ScoreboardScript>
 
     void Start()
     {
-        if (!scoreboardSet)
-            gameObject.SetActive(false);
+        //if (!scoreboardSet)
+        //    scoreboardText.text =
+            //gameObject.SetActive(false);
     }
 
-    public static void SetScoreBoard(int coins, CauseOfDeath cause)
+    public static void SetScoreBoard(int coins, int travelled, CauseOfDeath cause)
     {
         //Debug.Log("Setting scoreboard to " + coins + ", " + cause);
-        instance.gameObject.SetActive(true);
+        //instance.gameObject.SetActive(true);
 
         string str = "";
         switch (cause)
@@ -41,6 +42,8 @@ public class ScoreboardScript : SingletonComponent<ScoreboardScript>
 
         str += Environment.NewLine + Environment.NewLine;
         str += "Collected " + coins + " coins!";
+        str += Environment.NewLine + Environment.NewLine;
+        str += "Travelled " + travelled + " meters!";
 
         instance.scoreboardText.text = str;
         instance.scoreboardSet = true;

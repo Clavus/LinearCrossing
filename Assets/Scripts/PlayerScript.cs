@@ -77,6 +77,7 @@ public class PlayerScript : MonoBehaviour
 
     private int gridX = 0;
     private int gridY = 0;
+    private int travelledGridSquares = 0;
 
     private bool died = false;
     private float grabRange;
@@ -364,6 +365,9 @@ public class PlayerScript : MonoBehaviour
         targetPosition += delta;
         iTween.MoveTo(gameObject, targetPosition, 0.2f);
         IncrementGridCoord();
+
+        travelledGridSquares++;
+        HighscoreScript.SetDistanceTravelled((int) (travelledGridSquares * Grid.Size));
 
         cageParticleSystem.Play();
         iTween.Stop(cageEnginePiston.gameObject);
