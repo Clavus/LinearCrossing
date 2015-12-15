@@ -9,20 +9,17 @@ public class RadioScript : SingletonComponent<RadioScript>, IInteractable
     private static int current = -1;
     private static float trackTime = 0;
     private static AudioClip nowPlayingClip;
-
+    
+    private Color messageColor = new Color(0,255,45);
     private AudioSource nowPlaying;
     private float nextTrackTime = 0;
-
-    void Awake()
-    {
-        base.Awake();
-        sources = GetComponents<AudioSource>();
-    }
 
 	// Use this for initialization
 	void Start () {
 
-	    if (instance == this && current != -1 && sources[current].clip == nowPlayingClip)
+        sources = GetComponents<AudioSource>();
+
+        if (instance == this && current != -1 && sources[current].clip == nowPlayingClip)
 	    {
             sources[current].Play();
             sources[current].time = trackTime;
@@ -52,12 +49,20 @@ public class RadioScript : SingletonComponent<RadioScript>, IInteractable
     public void OnInteract(PlayerScript player)
     {
         SwitchToNextTrack(true);
+        
+        if (current == -1)
+            player.ShowCrosshairMessage("Turned off radio", messageColor);
+        else
+            player.ShowCrosshairMessage("Playing track " + (current + 1) + " of " + sources.Length, messageColor);
     }
 
     public void SwitchToNextTrack(bool stopAfterLast = false)
     {
         if (current != -1)
             sources[current].Stop();
+
+        if (sources.Length == 0)
+            return;
 
         current++;
         if (!stopAfterLast)

@@ -19,6 +19,9 @@ public class WorldBuilderScript : SingletonComponent<WorldBuilderScript>
     [SerializeField]
     private WorldElementScript[] worldElements;
 
+    private WorldElementScript lastChosenElement;
+    private WorldElementScript secondLastChosenElement;
+
     private List<WorldElementScript> activeElements;
     private int gridDistance = 0;
 
@@ -96,7 +99,19 @@ public class WorldBuilderScript : SingletonComponent<WorldBuilderScript>
         if (potentialElements.Count == 0)
             return;
 
-        WorldElementScript chosenElement = potentialElements[Random.Range(0, potentialElements.Count)];
+        // make sure we don't spawn the same element 3 times in a row
+        WorldElementScript chosenElement = null;
+        int attempts = 10;
+        while (attempts > 0 && (chosenElement == null || (chosenElement == lastChosenElement && chosenElement == secondLastChosenElement)))
+        {
+            chosenElement = potentialElements[Random.Range(0, potentialElements.Count)];
+            attempts--;
+        }
+
+        secondLastChosenElement = lastChosenElement;
+        lastChosenElement = chosenElement;
+
+        //Debug.Log("Spawning " + chosenElement.name + " (" + chosenElement.Difficulty + ") adding " + chosenElement.Width + " to grid distance " + gridDistance + " with difficulty " + spawnDifficulty);
 
         GameObject newElement = (GameObject) Instantiate(chosenElement.gameObject, transform.position + Vector3.forward*gridDistance*Grid.Size, chosenElement.transform.rotation);
         WorldElementScript nElement = newElement.GetComponent<WorldElementScript>();

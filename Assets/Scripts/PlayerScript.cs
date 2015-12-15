@@ -190,7 +190,7 @@ public class PlayerScript : MonoBehaviour
 	    cage.rotation = Quaternion.Slerp(cage.rotation, cageTargetRotation, Time.deltaTime*3f);
 
         // CHEATS
-	    if (Input.GetKey(KeyCode.LeftShift) && !startScreenMode)
+	    if (Application.isEditor && !startScreenMode)
 	    {
             if (Input.GetKeyDown(KeyCode.Keypad1))
             toolbelt.AddTool(ToolType.ForwardTranslation);
