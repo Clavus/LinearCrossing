@@ -39,6 +39,9 @@ public class HighscoreScript : SingletonComponent<HighscoreScript>
 
     public static void SetDistanceTravelled(int meters)
     {
+        if (instance == null)
+            return;
+
         instance.travelledMeters = meters;
     }
 
